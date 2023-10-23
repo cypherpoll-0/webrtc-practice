@@ -9,8 +9,7 @@ import Peer from "simple-peer";
 import io from "socket.io-client";
 import "./App.css";
 
-const socket = io.connect("http://localhost:3000");
-
+const socket = io.connect("http://localhost:5000");
 function App() {
 	const [me, setMe] = useState("");
 	const [stream, setStream] = useState();
@@ -21,14 +20,13 @@ function App() {
 	const [idToCall, setIdToCall] = useState("");
 	const [callEnded, setCallEnded] = useState(false);
 	const [name, setName] = useState("");
-
 	const myVideo = useRef();
 	const userVideo = useRef();
 	const connectionRef = useRef();
 
 	useEffect(() => {
 		navigator.mediaDevices
-			.getUserMedia({ audio: true, video: true })
+			.getUserMedia({ video: true, audio: true })
 			.then((stream) => {
 				setStream(stream);
 				myVideo.current.srcObject = stream;
@@ -41,7 +39,7 @@ function App() {
 		socket.on("callUser", (data) => {
 			setReceivingCall(true);
 			setCaller(data.from);
-			setName(data.Name);
+			setName(data.name);
 			setCallerSignal(data.signal);
 		});
 	}, []);
@@ -52,7 +50,6 @@ function App() {
 			trickle: false,
 			stream: stream,
 		});
-
 		peer.on("signal", (data) => {
 			socket.emit("callUser", {
 				userToCall: id,
@@ -61,11 +58,9 @@ function App() {
 				name: name,
 			});
 		});
-
 		peer.on("stream", (stream) => {
 			userVideo.current.srcObject = stream;
 		});
-
 		socket.on("callAccepted", (signal) => {
 			setCallAccepted(true);
 			peer.signal(signal);
@@ -81,11 +76,9 @@ function App() {
 			trickle: false,
 			stream: stream,
 		});
-
 		peer.on("signal", (data) => {
 			socket.emit("answerCall", { signal: data, to: caller });
 		});
-
 		peer.on("stream", (stream) => {
 			userVideo.current.srcObject = stream;
 		});
